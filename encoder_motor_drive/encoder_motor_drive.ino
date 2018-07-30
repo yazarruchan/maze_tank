@@ -186,3 +186,7 @@ void sola_don_kendi_ekseninde(){
   
 }
 
+void ortala(int solUzaklik, int sagUzaklik,int onUzaklik){
+  int pozisyon = 0;
+}
+
