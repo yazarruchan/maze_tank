@@ -1,60 +1,64 @@
-/* Encoder Library - Basic Example
- * http://www.pjrc.com/teensy/td_libs_Encoder.html
- *
- * This example code is in the public domain.
- */
 #include <Encoder.h>
-int yon = 1;
-Encoder myEnc(2,3);
+
+Encoder enc(2,3);
+Encoder enc2(4,5);
 const int in1 = 6;     // Motor sürücümüze bağladığımız pinleri tanımlıyoruz
 const int in2 = 7;
 const int in3 = 8;
 const int in4 = 9;
 
-int trigPin = 12; /* Sensorun trig pini Arduinonun 6 numaralı ayağına bağlandı */
-int echoPinSol = 13;  /* Sensorun echo pini Arduinonun 7 numaralı ayağına bağlandı */
-int echoPinSag = 11;
-int echoPinOn = 10;
-int hiz =5;
-int hiz2 =4;
+/*int trigPin = 12; // Sensorun trig pini Arduinonun 6 numaralı ayağına bağlandı */
+/*int echoPinSol = 13;  // Sensorun echo pini Arduinonun 7 numaralı ayağına bağlandı */
+/*int echoPinSag = 11;
+int echoPinOn = 10;*/
+int hiz =10;
+int hiz2 =11;
 
-long newPosition;
-long sureSol;
+long newPosition, newPosition2;
+/*long sureSol;
 long sureSag;
 long sureOn;
 long uzaklikSol;
 long uzaklikSag;
-long uzaklikOn;
+long uzaklikOn;*/
 long oldPosition  = -999;
+long oldPosition2 = -999;
 
 void setup() {
   pinMode(in1, OUTPUT);  //Tüm pinlerden güç çıkışı olacağı için OUTPUT olarak ayarladık.
   pinMode(in2, OUTPUT);
   pinMode(in3, OUTPUT);
   pinMode(in4, OUTPUT);
-  pinMode(trigPin, OUTPUT); /* trig pini çıkış olarak ayarlandı */
-  pinMode(echoPinSol,INPUT); /* sol echo pini giriş olarak ayarlandı */
-  pinMode(echoPinSag,INPUT); /* sağ echo pini giriş olarak ayarlandı */
-  pinMode(echoPinOn,INPUT); /* ön echo pini giriş olarak ayarlandı */
   Serial.begin(9600);
-  Serial.println("Basic Encoder Test:");
-  analogWrite(hiz2,  255);
-  ileri_x_kare(30);
-  Serial.println(myEnc.read());
-  delay(500);
-  Serial.println(myEnc.read()); 
+ /* pinMode(trigPin, OUTPUT);  //trig pini çıkış olarak ayarlandı 
+ / pinMode(echoPinSol,INPUT); // sol echo pini giriş olarak ayarlandı
+ / pinMode(echoPinSag,INPUT); // sağ echo pini giriş olarak ayarlandı
+ / pinMode(echoPinOn,INPUT); // ön echo pini giriş olarak ayarlandı*/
+  
 }
  
 
 
 
 void loop() {
- // digitalWrite(trigPin, LOW); /* sensör pasif hale getirildi 
- // delayMicroseconds(5);
- // digitalWrite(trigPin, HIGH); /* Sensore ses dalgasının üretmesi için emir verildi */
- // delayMicroseconds(10);
- // digitalWrite(trigPin, LOW);  /* Yeni dalgaların üretilmemesi için trig pini LOW konumuna getirildi */ 
- /*
+  
+  Serial.println("Calismasina son");
+  for(int sayac; sayac<5; sayac++){
+  Serial.print(5-sayac);
+  Serial.println(" saniye.");
+  delay(1000);
+  }
+  
+  ileri_x_kare(100);
+  
+ 
+ /* Uzaklık Sensörü Bölümü
+  digitalWrite(trigPin, LOW);  // sensör pasif hale getirildi 
+  delayMicroseconds(5);
+  digitalWrite(trigPin, HIGH); // Sensore ses dalgasının üretmesi için emir verildi
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);  // Yeni dalgaların üretilmemesi için trig pini LOW konumuna getirildi
+ 
   sureSol = pulseIn(echoPinSol, HIGH); // ses dalgasının geri dönmesi için geçen sure ölçülüyor 
   sureSag = pulseIn(echoPinSag, HIGH); // ses dalgasının geri dönmesi için geçen sure ölçülüyor
   sureOn = pulseIn(echoPinOn, HIGH);
@@ -80,16 +84,15 @@ void loop() {
 }
 
 
-
 void bir_kare_ileri(){
   analogWrite(hiz,  255);
  
   while(newPosition < 722){
-    newPosition = myEnc.read();
+    newPosition = enc.read();
   
     if (newPosition != oldPosition) {
       oldPosition = newPosition;
-      Serial.println(newPosition);
+      encoderDegerYazdir();
       }
     
     digitalWrite(in1, LOW); // Duruma göre değiştirelecek ileri veya geri olamsına göre.
@@ -102,91 +105,116 @@ void bir_kare_ileri(){
 }
 
 void ileri_x_kare(int kare_sayisi){
-  analogWrite(hiz,  255);
+  analogWrite(hiz,  150);
+  analogWrite(hiz2, 150);
  for(int i=0; i<kare_sayisi;i++){
-    while(newPosition < (i+1)*722){
-      newPosition = myEnc.read();
-      if (newPosition != oldPosition) {
+    while(newPosition < (i+1)*950 || newPosition2 < (i+1)*950){
+      newPosition = enc.read();
+      if (newPosition != oldPosition || newPosition2 != oldPosition2) {
         oldPosition = newPosition;
-        Serial.println(newPosition);
+        encoderDegerYazdir();
         }
       digitalWrite(in1, LOW); // Duruma göre değiştirelecek ileri veya geri olamsına göre.
       digitalWrite(in2, HIGH);
       digitalWrite(in3, LOW); // in3, in4 ayaranacak.
       digitalWrite(in4, HIGH);
     }
-
- }
-  analogWrite(hiz,  0);
-  delay(750);
-  myEnc.write(0);
+  }
+ motorDurdur();
+ encoderSifirla();
 }
 
 void ileri_100_mm(){
   analogWrite(hiz, 255);
   while (newPosition < 145){
-    newPosition = myEnc.read();
+    newPosition = enc.read();
       if (newPosition != oldPosition) {
         oldPosition = newPosition;
-        Serial.println(newPosition);
+        encoderDegerYazdir();
         }
       digitalWrite(in1, LOW); // Duruma göre değiştirelecek ileri veya geri olamsına göre.
       digitalWrite(in2, HIGH);
       digitalWrite(in3, LOW); // in3, in4 ayaranacak.
       digitalWrite(in4, HIGH);
-  }
+    }
+ motorDurdur();
+  encoderSifirla();
 }
 
 void ileri_x_mm(){// yapım aşamasında
   analogWrite(hiz, 255);
   while (newPosition < 145){
-    newPosition = myEnc.read();
+    newPosition = enc.read();
       if (newPosition != oldPosition) {
         oldPosition = newPosition;
-        Serial.println(newPosition);
+        encoderDegerYazdir();
         }
       digitalWrite(in1, LOW); // Duruma göre değiştirelecek ileri veya geri olamsına göre.
       digitalWrite(in2, HIGH);
       digitalWrite(in3, LOW); // in3, in4 ayaranacak.
       digitalWrite(in4, HIGH);
-  }
+    }
+  motorDurdur();
+   encoderSifirla();
 }
 
 void saga_don_kendi_ekseninde(){
 
   analogWrite(hiz, 255);
   while (newPosition < 220){// arabayı yaptıktan sonra değişecek.
-     newPosition = myEnc.read();
+     newPosition = enc.read();
       if (newPosition != oldPosition) {
         oldPosition = newPosition;
-        Serial.println(newPosition);
+        encoderDegerYazdir();
         }
       digitalWrite(in1, LOW); // Duruma göre değiştirelecek ileri veya geri olamsına göre. SOL1
       digitalWrite(in2, HIGH); // SOL 2
       digitalWrite(in3, HIGH); // in3, in4 ayaranacak. SAĞ 1
       digitalWrite(in4, LOW);// SAĞ 2
-  }
-  
+    }
+  motorDurdur();
+  encoderSifirla();
 }
 
 void sola_don_kendi_ekseninde(){
 
   analogWrite(hiz, 255);
   while (newPosition < 220){// arabayı yaptıktan sonra değişecek.
-     newPosition = myEnc.read();
+     newPosition = enc.read();
       if (newPosition != oldPosition) {
         oldPosition = newPosition;
-        Serial.println(newPosition);
+        encoderDegerYazdir();
         }
       digitalWrite(in1, HIGH); // Duruma göre değiştirelecek ileri veya geri olamsına göre. SOL1
       digitalWrite(in2, LOW); // SOL 2
       digitalWrite(in3, LOW); // in3, in4 ayaranacak. SAĞ 1
       digitalWrite(in4, HIGH);// SAĞ 2
-  }
-  
+    }
+  motorDurdur();
+  encoderSifirla();
 }
 
 void ortala(int solUzaklik, int sagUzaklik,int onUzaklik){
   int pozisyon = 0;
+}
+
+void encoderDegerYazdir(){
+    Serial.print("Encoder 1 = ");
+    Serial.print(enc.read()); //ENKODERDEN GELEN BİLGİYİ GÖRÜNTÜLEMEK İÇİN
+    Serial.print(" --- Encoder 2 = ");
+    Serial.println(enc2.read());
+}
+
+void encoderSifirla(){
+    delay(750);
+    enc.write(0);
+    enc2.write(0);
+}
+
+void motorDurdur(){
+    digitalWrite(in1, LOW);
+    digitalWrite(in2, LOW);
+    digitalWrite(in3, LOW);
+    digitalWrite(in4, LOW);
 }
 
